@@ -72,13 +72,7 @@
         <activity android:name=".MapaLocalizaciones"
             android:exported="false"/>
 
-        <activity android:name=".Menu"
-            android:exported="false"/>
-
         <activity android:name=".ListaUsuarios"
-            android:exported="false"/>
-
-        <activity android:name=".ServicioDisponibilidad"
             android:exported="false"/>
 
     </application>
