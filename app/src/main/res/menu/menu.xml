@@ -1,0 +1,26 @@
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_disconnect"
+        android:title="@string/btn_cerrar_sesion"
+        android:icon="@drawable/log_out"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_set_status"
+        android:title="@string/btn_establecerEstado">
+        <menu>
+            <item
+                android:id="@+id/menu_available"
+                android:title="@string/btn_disponible" />
+            <item
+                android:id="@+id/menu_unavailable"
+                android:title="@string/btn_desconectado" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/btn_lista_usuarios"
+        android:title="@string/btn_usuariosDisponibles" />
+</menu>
