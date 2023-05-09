@@ -1,7 +1,8 @@
-INTEGRANTES DEL GRUPO:
-1. Victor Julio Peñaranda
-2. Santiago Mejía Fernández
+Integrantes del Grupo:
+1. Santiago Mejía Fernández.
 
-NOMBRE DEL GRUPO: Épsilon
+Nombre del Grupo: 
+Épsilon.
 
-ENLACE AL VIDEO DEMOSTRATIVO EN YOUTUBE: https://youtu.be/KlzsEyFCTfo
+Enlace al video en youtube:
+https://youtu.be/KlNtZp7sXr4
