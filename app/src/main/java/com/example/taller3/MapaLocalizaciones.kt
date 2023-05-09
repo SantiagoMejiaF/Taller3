@@ -21,6 +21,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import org.json.JSONObject
 
 class MapaLocalizaciones : AppCompatActivity(), OnMapReadyCallback {
@@ -71,19 +72,11 @@ class MapaLocalizaciones : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun getLastLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                1
-            )
+        if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED){
+
+            ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION),1)
         } else {
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 location?.let {
@@ -106,7 +99,7 @@ class MapaLocalizaciones : AppCompatActivity(), OnMapReadyCallback {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_disconnect -> {
-                // Lógica para cerrar sesión
+
                 FirebaseAuth.getInstance().signOut()
                 val intent = Intent(this, Login::class.java)
                 Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_LONG).show()
@@ -115,21 +108,27 @@ class MapaLocalizaciones : AppCompatActivity(), OnMapReadyCallback {
                 return true
             }
             R.id.menu_available -> {
-                // Lógica para establecer estado como disponible
-                val currentUser = FirebaseAuth.getInstance().currentUser
-                val usuario = Usuario()
-                usuario.setUid(currentUser!!.uid)
-                usuario.actualizarEstado(this,"Disponible")
-                Toast.makeText(this, "Estado actualizado", Toast.LENGTH_LONG).show()
+
+                val firebaseDatabase = FirebaseDatabase.getInstance()
+                val firebaseAuth = FirebaseAuth.getInstance()
+
+                val updateData = HashMap<String, Any>()
+                updateData["estado"] = "Disponible"
+                firebaseDatabase.reference.child("usuarios").child(firebaseAuth.currentUser!!.uid).updateChildren(updateData)
+                Toast.makeText(this, "Estado actualizado a disponible", Toast.LENGTH_LONG).show()
+
                 return true
             }
             R.id.menu_unavailable -> {
-                // Lógica para establecer estado como desconectado
-                val currentUser = FirebaseAuth.getInstance().currentUser
-                val usuario = Usuario()
-                usuario.setUid(currentUser!!.uid)
-                usuario.actualizarEstado(this,"No disponible")
-                Toast.makeText(this, "Estado actualizado", Toast.LENGTH_LONG).show()
+
+                val firebaseDatabase = FirebaseDatabase.getInstance()
+                val firebaseAuth = FirebaseAuth.getInstance()
+
+                val updateData = HashMap<String, Any>()
+                updateData["estado"] = "No disponible"
+                firebaseDatabase.reference.child("usuarios").child(firebaseAuth.currentUser!!.uid).updateChildren(updateData)
+                Toast.makeText(this, "Estado actualizado a no disponible", Toast.LENGTH_LONG).show()
+
                 return true
             }
 

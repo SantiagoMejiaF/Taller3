@@ -37,4 +37,5 @@
     <string name="btn_ubicacionUsuario">Ver ubicación actual del usuario</string>
     <string name="show_location">Mostrar Ubicacion</string>
     <string name="des_foto_de_perfil_del_usuario">Foto de perfil del usuario</string>
+    <string name="btn_rastrear">Rastrear</string>
 </resources>

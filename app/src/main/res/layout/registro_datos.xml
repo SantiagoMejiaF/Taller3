@@ -293,7 +293,7 @@
             android:backgroundTint="@color/black"
             android:ems="10"
             android:hint="@string/hint_latitud"
-            android:inputType="number"
+            android:inputType="text"
             android:textSize="18sp"
             tools:layout_editor_absoluteX="25dp"
             tools:layout_editor_absoluteY="456dp" />
@@ -333,7 +333,7 @@
             android:backgroundTint="@color/black"
             android:ems="10"
             android:hint="@string/hint_longitud"
-            android:inputType="number"
+            android:inputType="text"
             android:textSize="18sp"
             tools:layout_editor_absoluteX="25dp"
             tools:layout_editor_absoluteY="456dp" />

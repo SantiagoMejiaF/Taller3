@@ -15,20 +15,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 
-const val PATH_USERS = "usuarios/"
 
 class RegistroDatos : AppCompatActivity() {
 
     private lateinit var binding: RegistroDatosBinding
     private lateinit var auth: FirebaseAuth
-    private lateinit var myRef: DatabaseReference
-    private val database = FirebaseDatabase.getInstance()
-    private val myRefUsers = database.getReference(PATH_USERS)
-
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,11 +48,11 @@ class RegistroDatos : AppCompatActivity() {
                         val user = auth.currentUser
                         if (user != null) {
                             val upcrb = UserProfileChangeRequest.Builder()
-                            upcrb.setDisplayName(binding.etNombreUsuario.text.toString() + " " + binding.etApellidoUsuario.text.toString())
-                            upcrb.setPhotoUri(Uri.parse("path/to/pic")) //fake uri, use Firebase Storage
+                            upcrb.displayName = binding.etNombreUsuario.text.toString() + " " + binding.etApellidoUsuario.text.toString()
+                            upcrb.photoUri = Uri.parse("path/to/pic") //fake uri, use Firebase Storage
                             user.updateProfile(upcrb.build())
                             updateUI(user)
-                            enviarFireBase()
+                            cargarUsuarioFireBase()
                         }
                     } else {
                         Toast.makeText(
@@ -118,18 +112,34 @@ class RegistroDatos : AppCompatActivity() {
         }
     }
 
-    private fun enviarFireBase (){
+    private fun cargarUsuarioFireBase (){
 
-        myRef = myRefUsers.child(auth.currentUser?.uid.toString())
+        val mRootReference = FirebaseDatabase.getInstance()
+        val firebaseAuth = FirebaseAuth.getInstance()
 
-        val nuevoUsuario = Usuario()
-        nuevoUsuario.setNombre(binding.etNombreUsuario.text.toString())
-        nuevoUsuario.setApellido(binding.etApellidoUsuario.text.toString())
-        nuevoUsuario.setIdentificacion(binding.etIdentificacionUsuario.text.toString())
-        nuevoUsuario.setLatitud(binding.etLatitud.text.toString())
-        nuevoUsuario.setLongitud(binding.etLongitud.text.toString())
-        nuevoUsuario.setUid(auth.currentUser?.uid.toString())
+        val nombreUsuario = binding.etNombreUsuario.text.toString()
+        val apellidoUsuario = binding.etApellidoUsuario.text.toString()
+        val identificacionUsuario = binding.etIdentificacionUsuario.text.toString()
+        val latitudUsuario = binding.etLatitud.text.toString()
+        val longitudUsuario = binding.etLongitud.text.toString()
 
-        myRef.setValue(nuevoUsuario)
+
+        val nuevoUsuario  = HashMap<String, Any>()
+        nuevoUsuario["nombre"] = nombreUsuario
+        nuevoUsuario["apellido"] = apellidoUsuario
+        nuevoUsuario["identificacion"] = identificacionUsuario
+        nuevoUsuario["latitud"] = latitudUsuario
+        nuevoUsuario["longitud"] = longitudUsuario
+        nuevoUsuario["estado"] = "pendiente"
+        nuevoUsuario["foto"] = "pendiente"
+
+        mRootReference.reference.child("usuarios").child(firebaseAuth.currentUser!!.uid).setValue(nuevoUsuario)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(this, "Usuario registrado correctamente", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Error al registrar el usuario", Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 }

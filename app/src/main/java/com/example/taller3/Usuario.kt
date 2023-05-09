@@ -1,135 +1,41 @@
 package com.example.taller3
 
-import android.content.Context
-import android.net.Uri
-import android.widget.Toast
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import android.os.Parcel
+import android.os.Parcelable
 
-class Usuario {
+data class Usuario(
+    var foto: String? = null,
+    var nombre: String? = null,
+    var apellido: String? = null,
+    var estado: String? = null,
+    var uid : String? = null
+) : Parcelable {
 
-    private var nombre: String = ""
-    private var apellido: String = ""
-    private var identificacion: String = ""
-    private var latitud: String = ""
-    private var longitud: String = ""
-    private var imagenUri: Uri? = null
-    private var Uid = ""
-    private var estado: String = ""
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString()
+    )
 
-    constructor()
-
-    constructor(
-        nombre: String,
-        apellido: String,
-        identificacion: String,
-        latitud: String,
-        longitud: String,
-        Uid: String,
-        estado: String
-    ) {
-        this.nombre = nombre
-        this.apellido = apellido
-        this.identificacion = identificacion
-        this.latitud = latitud
-        this.longitud = longitud
-        this.Uid = Uid
-        this.estado = estado
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(foto)
+        parcel.writeString(nombre)
+        parcel.writeString(apellido)
+        parcel.writeString(estado)
     }
 
-    // Getters
-
-    fun getNombre(): String {
-        return nombre
-    }
-    fun setNombre(nombre: String) {
-        this.nombre = nombre
+    override fun describeContents(): Int {
+        return 0
     }
 
-    fun getApellido(): String {
-        return apellido
-    }
-    fun setApellido(apellido: String) {
-        this.apellido = apellido
-    }
+    companion object CREATOR : Parcelable.Creator<Usuario> {
+        override fun createFromParcel(parcel: Parcel): Usuario {
+            return Usuario(parcel)
+        }
 
-    fun getIdentificacion(): String {
-        return identificacion
-    }
-    fun setIdentificacion(identificacion: String) {
-        this.identificacion = identificacion
-    }
-
-    fun getLatitud(): String {
-        return latitud
-    }
-    fun setLatitud(latitud: String) {
-        this.latitud = latitud
-    }
-
-    fun getLongitud(): String {
-        return longitud
-    }
-    fun setLongitud(longitud: String) {
-        this.longitud = longitud
-    }
-
-    fun getImagenUri(): Uri? {
-        return imagenUri
-    }
-
-    fun setImagenUri(imagenUri: Uri?) {
-        this.imagenUri = imagenUri
-    }
-
-
-    fun getUid(): String {
-        return Uid
-    }
-
-    fun setUid(Uid: String) {
-        this.Uid = Uid
-    }
-
-    fun getEstado(): String {
-        return estado
-    }
-
-    fun setEstado(estado: String) {
-        this.estado = estado
-    }
-
-    fun actualizarEstado(context: Context, estado: String) {
-
-        val mAuth = FirebaseAuth.getInstance()
-        val currentUser = mAuth.currentUser
-
-        // Verificar si el usuario está autenticado
-        if (currentUser != null) {
-            val db = FirebaseFirestore.getInstance()
-            val userRef = db.collection("usuarios").document(currentUser.uid)
-            userRef.update("estado", estado)
-                .addOnSuccessListener {
-                    Toast.makeText(
-                        context,
-                        "Estado actualizado",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(
-                        context,
-                        "Error al actualizar",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-        } else {
-            // El usuario no está autenticado, mostrar mensaje de error
-            Toast.makeText(
-                context,
-                "Usuario no autenticado",
-                Toast.LENGTH_SHORT
-            ).show()
+        override fun newArray(size: Int): Array<Usuario?> {
+            return arrayOfNulls(size)
         }
     }
 }

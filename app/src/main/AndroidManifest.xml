@@ -8,6 +8,8 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -53,6 +55,15 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity android:name=".adapter.UsuarioAdapter"
+            android:exported="false"/>
+
+        <activity android:name=".adapter.UsuarioProvider"
+            android:exported="false"/>
+
+        <activity android:name=".ListaUsuarios"
+            android:exported="false"/>
+
         <activity android:name=".Login"
             android:exported="true">
             <intent-filter>
@@ -60,6 +71,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".MapaLocalizaciones"
+            android:exported="false"/>
+
+        <activity android:name=".MapaUsuario"
+            android:exported="false"/>
 
         <activity
             android:name=".RegistroDatos"
@@ -69,11 +86,14 @@
             android:name=".RegistroFoto"
             android:exported="false"/>
 
-        <activity android:name=".MapaLocalizaciones"
+        <activity
+            android:name=".Usuario"
             android:exported="false"/>
 
-        <activity android:name=".ListaUsuarios"
+        <activity android:name=".UsuariosDisponiblesService"
             android:exported="false"/>
+
+        <service android:name=".UsuariosDisponiblesService"/>
 
     </application>
 

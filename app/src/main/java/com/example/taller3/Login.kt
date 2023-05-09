@@ -72,12 +72,13 @@ class Login : AppCompatActivity() {
             auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
-                    Log.d(TAG, "signInWithEmail:success")
+                    Log.d(TAG, "Inicio de sesion exitoso")
+                    Toast . makeText ( baseContext , "Inicio de sesion exitoso." , Toast . LENGTH_SHORT ). show ()
                     val user = auth.currentUser
                     updateUI(user)
                 }else {
                     // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInWithEmail:failure", task.exception)
+                    Log.w(TAG, "Error al iniciar sesion", task.exception)
                     Toast.makeText(
                         baseContext, "Error al iniciar sesion.",
                         Toast.LENGTH_SHORT

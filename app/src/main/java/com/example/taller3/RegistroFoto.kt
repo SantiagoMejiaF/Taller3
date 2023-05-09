@@ -11,39 +11,28 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.service.controls.ControlsProviderService.TAG
-import android.util.Log
-import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import java.io.File
-import java.io.OutputStream
-import java.util.*
 import com.example.taller3.databinding.RegistroFotoBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
+import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.io.OutputStream
 
-
+@Suppress("DEPRECATION")
 class RegistroFoto : AppCompatActivity() {
 
     private lateinit var binding: RegistroFotoBinding
     private lateinit var file: File
 
     @RequiresApi(Build.VERSION_CODES.Q)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = RegistroFotoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -56,7 +45,7 @@ class RegistroFoto : AppCompatActivity() {
         }
 
         binding.btnContinuar.setOnClickListener {
-            guardarEnGaleria()
+            Toast .makeText(this, "Registro exitoso", Toast.LENGTH_LONG).show()
             val intent = Intent(this, MapaLocalizaciones::class.java)
             startActivity(intent)
         }
@@ -64,47 +53,46 @@ class RegistroFoto : AppCompatActivity() {
 
     // Subir una foto a Firebase Storage
 
-    private fun subirImagen(photoURI: Uri) {
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
-            val uid = user.uid
-            val storageRef = Firebase.storage.reference
-            val imageRef = storageRef.child("images/$uid.jpg")
+    private fun subirImagenFirebase(uri: Uri, callback: (Boolean) -> Unit) {
+        val firebaseStorage = FirebaseStorage.getInstance()
+        val firebaseDatabase = FirebaseDatabase.getInstance()
+        val firebaseAuth = FirebaseAuth.getInstance()
 
-            val uploadTask = imageRef.putFile(photoURI)
-            uploadTask.addOnSuccessListener {
-                // Imagen subida exitosamente
-                Toast.makeText(this, "Imagen subida exitosamente al storage de Firebase", Toast.LENGTH_LONG).show()
+        val storageRef = firebaseStorage.reference.child("Imagenes").child("${System.currentTimeMillis()}.jpg")
 
-                // Actualizar el campo 'foto' del usuario en la base de datos
-                val userRef = FirebaseDatabase.getInstance().getReference("usuarios").child(uid)
-                userRef.child("foto").setValue(imageRef.path)
-            }.addOnFailureListener {
-                // Error al subir la imagen
-                Toast.makeText(this, "Error al subir la imagen al storage de Firebase", Toast.LENGTH_LONG).show()
+        storageRef.putFile(uri).addOnSuccessListener { uploadTask ->
+            uploadTask.storage.downloadUrl.addOnSuccessListener { downloadUri ->
+                val usuario = Usuario()
+                usuario.foto = downloadUri.toString()
+
+                val updateData = HashMap<String, Any>()
+                updateData["foto"] = usuario.foto!!
+
+                firebaseDatabase.reference.child("usuarios").child(firebaseAuth.currentUser!!.uid).updateChildren(updateData)
+                    .addOnCompleteListener {
+                        callback(true) // Subida exitosa, llamada al callback con true
+                    }
+                    .addOnFailureListener {
+                        callback(false) // Error en la subida, llamada al callback con false
+                    }
             }
-        } else {
-            // No hay usuario autenticado
-            Toast.makeText(this, "No hay usuario autenticado", Toast.LENGTH_LONG).show()
         }
     }
 
-
-    // Guardar una foto en la galeria
+    // Guardar una foto en la galería
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun guardarEnGaleria() {
         val contenedor = crearContenedor()
         val uri = guardarImagen(contenedor)
         limpiarContenedor(contenedor, uri)
-        Toast.makeText(this,"Imagen guardada en la galeria",Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Imagen guardada en la galería", Toast.LENGTH_LONG).show()
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun crearContenedor(): ContentValues {
-
         val nombreArchivo = file.name
-        val tipoArchivo = "image/jpg"
+        val tipoArchivo = "image/jpeg"
         return ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, nombreArchivo)
             put(MediaStore.Files.FileColumns.MIME_TYPE, tipoArchivo)
@@ -113,132 +101,105 @@ class RegistroFoto : AppCompatActivity() {
         }
     }
 
-    private fun guardarImagen(contenedor: ContentValues): Uri {
-        var outputStream: OutputStream?
-        var uri: Uri?
+    private fun guardarImagen(contenedor: ContentValues): Uri? {
+        val resolver = contentResolver
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contenedor)
+        uri?.let {
+            val stream: OutputStream? = resolver.openOutputStream(uri)
+            stream?.let {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                val rotatedBitmap = rotarImagen(bitmap)
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                stream.close()
+            }
+        }
+        return uri
+    }
 
-        application.contentResolver.also { resolver ->
-            uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contenedor)
-            outputStream = resolver.openOutputStream(uri!!)
-        }
-        outputStream?.use { output ->
-            obtenerBitMap().compress(Bitmap.CompressFormat.JPEG, 100, output)
-        }
-        return uri!!
+    private fun rotarImagen(bitmap: Bitmap): Bitmap {
+        val matrix = Matrix()
+        matrix.postRotate(90f)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun limpiarContenedor(contenedor: ContentValues, uri: Uri) {
+    private fun limpiarContenedor(contenedor: ContentValues, uri: Uri?) {
         contenedor.clear()
         contenedor.put(MediaStore.MediaColumns.IS_PENDING, 0)
-        contentResolver.update(uri, contenedor, null, null)
+        uri?.let {
+            contentResolver.update(it, contenedor, null, null)
+        }
     }
 
 
-    // Tomar una foto desde la camara
+    // Tomar una foto con la cámara
 
-    private val abrirCamara =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val bitmap = obtenerBitMap()
-                val img = findViewById<ImageView>(R.id.img)
-                val matrix = Matrix()
-                matrix.postRotate(90f)
-                val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-                img.setImageBitmap(rotatedBitmap)
-            }
-        }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun verificarPermisoCamara() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
-            pedirPermisoCamara()
-        }else {
-            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).also {
-                it.resolveActivity(packageManager)?.also { _ ->
-                    createPhotoFile()
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        "com.example.taller3.fileprovider", file)
-                    it.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                }
-            }
-            abrirCamara.launch(intent)
-        }
-    }
-
-    private fun pedirPermisoCamara(){
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)){
-            Toast.makeText(this, "Permisos rechazados", Toast.LENGTH_LONG).show()
-        }
-        else{
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            tomarFoto()
+        } else {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 1)
         }
     }
 
-    private fun createPhotoFile() {
+    private fun tomarFoto() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        file = crearArchivo()
+        val uri = FileProvider.getUriForFile(this, "com.example.taller3.fileprovider", file)
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
+        startActivityForResult(intent, 2)
+    }
+
+    private fun crearArchivo(): File {
+        val nombreArchivo = "${System.currentTimeMillis()}.jpg"
         val directorio = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        file = File.createTempFile("IMG_${System.currentTimeMillis()}_", ".jpg", directorio)
+        return File.createTempFile(nombreArchivo, null, directorio)
     }
 
-    private fun obtenerBitMap(): Bitmap {
-        return BitmapFactory.decodeFile(file.toString())
-    }
-
-    // Escoger una foto desde la galeria
-
-    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        // Mostrar la imagen en el ImageView
-        val imageView = findViewById<ImageView>(R.id.img)
-        imageView.setImageURI(uri)
-    }
+    // Seleccionar una foto de la galería
 
     private fun selectImageFromGallery() {
-        // Verificar si se tiene el permiso de acceso a la galería
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            // Se tiene el permiso, mostrar el selector de imágenes de la galería
-            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 2)
-            pickImage.launch("image/*")
-        } else {
-            // No se tiene el permiso, solicitarlo
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 2)
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, 3)
+    }
+
+    // Resultado de la selección de la foto de la galería o de la foto tomada con la cámara
+
+    @Deprecated("Deprecated in Java")
+    @RequiresApi(Build.VERSION_CODES.Q)
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 2 && resultCode == RESULT_OK) {
+            binding.img.setImageURI(Uri.fromFile(file)) // Establecer la imagen directamente desde el archivo
+            subirImagenFirebase(Uri.fromFile(file)) { success ->
+                if (success) {
+                    Toast.makeText(this, "Imagen subida correctamente a Firebase", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Error al subir la imagen", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else if (requestCode == 3 && resultCode == RESULT_OK) {
+            binding.img.setImageURI(data?.data) // Establecer la imagen directamente desde el archivo
+            subirImagenFirebase(data?.data!!) { success ->
+                if (success) {
+                    Toast.makeText(this, "Imagen subida correctamente a Firebase", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Error al subir la imagen", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
-    // Solicitar permisos
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            1 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permiso para tomar una foto concedido
-                    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).also {
-                        it.resolveActivity(packageManager)?.also { _ ->
-                            createPhotoFile()
-                            val photoURI: Uri = FileProvider.getUriForFile(
-                                this,
-                                "com.example.taller3.fileprovider", file
-                            )
-                            it.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                            subirImagen(photoURI)
-                        }
-                    }
-                    abrirCamara.launch(intent)
-                } else {
-                    // Permiso para tomar una foto denegado
-                    Toast.makeText(this, "El permiso para tomar una foto fue denegado", Toast.LENGTH_SHORT).show()
-                }
-            }
-            2 -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permiso concedido, mostrar el selector de imágenes de la galería
-                    pickImage.launch("image/*")
-                } else {
-                    // Permiso denegado, mostrar mensaje al usuario
-                    Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show()
-                }
+
+        if (requestCode == 1){
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                tomarFoto()
+            } else {
+                Toast.makeText(this, "Permisos Denegados", Toast.LENGTH_SHORT).show()
             }
         }
     }
