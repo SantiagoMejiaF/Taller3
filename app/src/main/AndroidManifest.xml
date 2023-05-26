@@ -12,12 +12,15 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.LOCATION_HARDWARE"
+    <uses-permission
+        android:name="android.permission.LOCATION_HARDWARE"
         tools:ignore="ProtectedPermissions" />
 
     <queries>
@@ -26,75 +29,77 @@
         </intent>
     </queries>
 
-
     <application
-
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="Taller 3"
-        android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
         android:theme="@style/Theme.Taller3"
         tools:targetApi="31">
+        <activity
+            android:name=".RegistroDatosVetActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TipoUsuarioActivity"
+            android:exported="false" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAbLolmYWyWEeIMmP-8RzEQns3rJbHTDk8"/>
+            android:value="AIzaSyAbLolmYWyWEeIMmP-8RzEQns3rJbHTDk8" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
             android:grantUriPermissions="true"
             android:requestLegacyExternalStorage="true"
-            tools:replace="android:authorities"
-            android:exported="false">
+            tools:replace="android:authorities">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".adapter.UsuarioAdapter"
-            android:exported="false"/>
-
-        <activity android:name=".adapter.UsuarioProvider"
-            android:exported="false"/>
-
-        <activity android:name=".ListaUsuarios"
-            android:exported="false"/>
-
-        <activity android:name=".Login"
+        <activity
+            android:name=".adapter.UsuarioAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".adapter.UsuarioProvider"
+            android:exported="false" />
+        <activity
+            android:name=".ListaUsuarios"
+            android:exported="false" />
+        <activity
+            android:name=".Login"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".MapaLocalizaciones"
-            android:exported="false"/>
-
-        <activity android:name=".MapaUsuario"
-            android:exported="false"/>
-
+        <activity
+            android:name=".MapaLocalizaciones"
+            android:exported="false" />
+        <activity
+            android:name=".MapaUsuario"
+            android:exported="false" />
         <activity
             android:name=".RegistroDatos"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".RegistroFoto"
-            android:exported="false"/>
-
+            android:exported="false" />
         <activity
             android:name=".Usuario"
-            android:exported="false"/>
+            android:exported="false" />
+        <activity
+            android:name=".UsuariosDisponiblesService"
+            android:exported="false" />
 
-        <activity android:name=".UsuariosDisponiblesService"
-            android:exported="false"/>
-
-        <service android:name=".UsuariosDisponiblesService"/>
-
+        <service android:name=".UsuariosDisponiblesService" />
     </application>
 
 </manifest>
