@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.taller3.databinding.ActivityTipoUsuarioBinding
-import com.example.taller3.databinding.LoginBinding
 
 class TipoUsuarioActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTipoUsuarioBinding
@@ -14,6 +13,7 @@ class TipoUsuarioActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         binding = ActivityTipoUsuarioBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         binding.buttonUsuario.setOnClickListener {
             val intent = Intent(this, RegistroDatos::class.java)
