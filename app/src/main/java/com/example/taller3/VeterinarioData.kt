@@ -4,15 +4,18 @@ package com.example.taller3
 import android.os.Parcel
 import android.os.Parcelable
 
-class Veterinario {
+class VeterinarioData (
     var foto: String? = null,
     var nombre: String? = null,
     var apellido: String? = null,
     var estado: String? = null,
+    var placa: String? = null,
     var uid : String? = null
-}: Parcelable {
+
+    ): Parcelable {
 
     constructor(parcel: Parcel) : this(
+        parcel.readString(),
         parcel.readString(),
         parcel.readString(),
         parcel.readString(),
@@ -24,6 +27,7 @@ class Veterinario {
         parcel.writeString(nombre)
         parcel.writeString(apellido)
         parcel.writeString(estado)
+        parcel.writeString(placa)
     }
 
     override fun describeContents(): Int {
