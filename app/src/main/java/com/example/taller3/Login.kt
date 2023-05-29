@@ -33,7 +33,7 @@ class Login : AppCompatActivity() {
         }
 
         binding.btnRegistro.setOnClickListener {
-            val intent = Intent(this, RegistroDatos::class.java)
+            val intent = Intent(this, TipoUsuarioActivity::class.java)
             startActivity(intent)
         }
     }

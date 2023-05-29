@@ -38,4 +38,8 @@
     <string name="show_location">Mostrar Ubicacion</string>
     <string name="des_foto_de_perfil_del_usuario">Foto de perfil del usuario</string>
     <string name="btn_rastrear">Rastrear</string>
+    <string name="veterinarioBoton">Veterinario</string>
+    <string name="usuarioBoton">Usuario</string>
+    <string name="tv_placa">Placa:</string>
+    <string name="hint_placa">Escriba su placa</string>
 </resources>
