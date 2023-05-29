@@ -136,7 +136,7 @@ class RegistroDatosVetActivity : AppCompatActivity() {
         nuevoVeterinario["estado"] = "pendiente"
         nuevoVeterinario["foto"] = "pendiente"
 
-        mRootReference.reference.child("usuarios").child(firebaseAuth.currentUser!!.uid).setValue(nuevoVeterinario)
+        mRootReference.reference.child("veterinarios").child(firebaseAuth.currentUser!!.uid).setValue(nuevoVeterinario)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Toast.makeText(this, "Usuario registrado correctamente", Toast.LENGTH_SHORT).show()
